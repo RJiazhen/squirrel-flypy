@@ -18,8 +18,10 @@
 
 ### A. 配置文件落点与版本策略
 
+- 参考配置只读目录：`flypy-rime-config/rime/`（不要直接改；构建时复制到 `build/flypy-staged` 再进 `data/plum/`）。
 - 约定“内置小鹤配置”的仓库落点（建议仍落在 `data/plum/`，以复用现有 Xcode 资源拷贝链路）。
 - 约定你提供配置文件的交付形态（目录树 / zip / git submodule），以及更新方式（替换文件 + 重新生成工程引用）。
+- 当前从完整包中暂缓的三项可选能力，见 [flypy-optional-features-deferred.md](flypy-optional-features-deferred.md)。
 
 ### B. 构建链路接入
 
@@ -38,10 +40,10 @@
 
 ## 验收清单（M2 Done 的定义）
 
-- [ ] 产物内 `SharedSupport` 含你提供的小鹤音形配置文件（与交付清单一致）。
-- [ ] `package/add_data_files` 后工程文件无缺失引用（能成功 `xcodebuild`）。
-- [ ] `postinstall` 路径下 `Squirrel --build` 成功。
-- [ ] 明确记录：本阶段不做哪些事（默认方案、按键、候选、反查等），避免范围蔓延。
+- 产物内 `SharedSupport` 含你提供的小鹤音形配置文件（与交付清单一致）。
+- `package/add_data_files` 后工程文件无缺失引用（能成功 `xcodebuild`）。
+- `postinstall` 路径下 `Squirrel --build` 成功。
+- 明确记录：本阶段不做哪些事（默认方案、按键、候选、反查等），避免范围蔓延。
 
 ## 风险与注意事项
 

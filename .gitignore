@@ -19,3 +19,7 @@ package/*.xml
 *~
 .*.swp
 .DS_Store
+
+# Track flypy reference prebuild outputs even though `build/` is ignored globally.
+!flypy-rime-config/rime/build/
+!flypy-rime-config/rime/build/**

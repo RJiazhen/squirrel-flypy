@@ -53,9 +53,9 @@ copy-rime-binaries:
 	$(INSTALL_NAME_TOOL) $(INSTALL_NAME_TOOL_ARGS) bin/rime_deployer
 	$(INSTALL_NAME_TOOL) $(INSTALL_NAME_TOOL_ARGS) bin/rime_dict_manager
 
-.PHONY: data plum-data opencc-data copy-plum-data copy-opencc-data
+.PHONY: data plum-data opencc-data copy-plum-data copy-opencc-data copy-flypy-bundled-config
 
-data: plum-data opencc-data
+data: plum-data opencc-data copy-flypy-bundled-config
 
 $(PLUM_DATA):
 	$(MAKE) plum-data
@@ -83,6 +83,9 @@ copy-opencc-data:
 	mkdir -p data/opencc
 	cp $(OPENCC_DATA_OUTPUT) data/opencc/
 	cp $(PLUM_OPENCC_OUTPUT) data/opencc/ > /dev/null 2>&1 || true
+
+copy-flypy-bundled-config:
+	bash scripts/stage-flypy-for-data-plum.sh
 
 deps: librime data
 
