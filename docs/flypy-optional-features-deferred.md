@@ -8,7 +8,7 @@
 - **作用**：通过 Lua 翻译器处理表达式输入（常见为以 `=` 开头的计算或相关模式）。
 - **与上游参考的关联**（在 `flypy-rime-config/rime/flypy.schema.yaml` 中仍可查到）：
   - `engine/translators` 中的 `lua_translator@calculator_translator`
-  - `recognizer/patterns/expression` 中与 `=` 相关的匹配（例如 `^(=.*|ok[a-z']*)$` 中的 `=.*` 部分是否单独服务于计算器，需与 ok 引导模式一并核对）
+  - `recognizer/patterns/expression` 中与 `=` 相关的匹配（例如 `^(=.*|ok[a-z']*)$` 中的 `=.`* 部分是否单独服务于计算器，需与 ok 引导模式一并核对）
 - **补回时需检查**：
   - `rime.lua` 中是否提供 `calculator_translator` 实现（当前参考树中仅有日期/时间 Lua 示例）。
   - `librime-lua` 是否已随发行构建启用（否则 Lua translator 不会生效）。
