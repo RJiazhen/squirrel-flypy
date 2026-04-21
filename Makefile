@@ -159,7 +159,8 @@ archive: package package/sign_update
 	bash package/make_archive
 
 DSTROOT = /Library/Input Methods
-SQUIRREL_APP_ROOT = $(DSTROOT)/Squirrel.app
+SQUIRREL_APP_NAME = SquirrelFlypy.app
+SQUIRREL_APP_ROOT = $(DSTROOT)/$(SQUIRREL_APP_NAME)
 
 .PHONY: permission-check install-debug install-release
 
@@ -168,12 +169,12 @@ permission-check:
 
 install-debug: debug permission-check
 	rm -rf "$(SQUIRREL_APP_ROOT)"
-	cp -R $(DERIVED_DATA_PATH)/Build/Products/Debug/Squirrel.app "$(DSTROOT)"
+	cp -R $(DERIVED_DATA_PATH)/Build/Products/Debug/$(SQUIRREL_APP_NAME) "$(DSTROOT)"
 	DSTROOT="$(DSTROOT)" RIME_NO_PREBUILD=1 bash scripts/postinstall
 
 install-release: release permission-check
 	rm -rf "$(SQUIRREL_APP_ROOT)"
-	cp -R $(DERIVED_DATA_PATH)/Build/Products/Release/Squirrel.app "$(DSTROOT)"
+	cp -R $(DERIVED_DATA_PATH)/Build/Products/Release/$(SQUIRREL_APP_NAME) "$(DSTROOT)"
 	DSTROOT="$(DSTROOT)" bash scripts/postinstall
 
 .PHONY: clean clean-deps
