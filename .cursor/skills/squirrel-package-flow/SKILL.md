@@ -7,7 +7,7 @@ description: Build and package Squirrel in this repository with reproducible she
 
 ## Purpose
 
-Run a minimal, repeatable packaging flow for this repo and produce `package/Squirrel.pkg`.
+Run a minimal, repeatable packaging flow for this repo and produce the installer package configured by `package/make_package`.
 
 ## Constraints
 
@@ -61,13 +61,13 @@ bash package/make_package build
 ls -la package/*.pkg
 ```
 
-Expected output includes `package/Squirrel.pkg`.
+Expected output includes `package/<configured-package-name>.pkg` (the same filename reported by `pkgbuild` as `Wrote package to ...`).
 
 ## Quick Validation Checklist
 
 - Build exits with code `0`.
-- `pkgbuild` logs include `Wrote package to Squirrel.pkg`.
-- Final artifact exists at `package/Squirrel.pkg`.
+- `pkgbuild` logs include `Wrote package to <configured-package-name>.pkg`.
+- Final artifact exists at `package/<configured-package-name>.pkg`.
 
 ## If Build Fails
 
