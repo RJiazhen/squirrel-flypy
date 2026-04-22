@@ -26,7 +26,6 @@
   * 逐步實現快速加詞與詞庫管理能力
   * 參考 [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) 查看本倉庫結構梳理
   * 參考 [docs/config-files.md](docs/config-files.md) 查看配置文件索引
-  * 參考 [docs/plan-m2.md](docs/plan-m2.md) 查看 M2 子計劃
   * 參考 [docs/flypy-optional-features-deferred.md](docs/flypy-optional-features-deferred.md) 查看暫緩可選功能（計算器、二重簡碼、全碼字典）
 
 式恕堂 版權所無
