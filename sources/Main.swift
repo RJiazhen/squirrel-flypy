@@ -80,6 +80,12 @@ struct SquirrelApp {
         case "--sync":
           DistributedNotificationCenter.default().postNotificationName(.init("SquirrelSyncNotification"), object: nil)
           return true
+        case "--quick-add-word":
+          DistributedNotificationCenter.default().postNotificationName(.init(SquirrelApplicationDelegate.quickAddWordNotification),
+                                                                       object: SquirrelApplicationDelegate.quickAddWordNotificationObject,
+                                                                       userInfo: nil,
+                                                                       deliverImmediately: true)
+          return true
         case "--help":
           print(helpDoc)
           return true
@@ -138,6 +144,7 @@ Perform actions:
   --quit                     quit all Squirrel process
   --reload                   deploy
   --sync                     sync user data
+  --quick-add-word           open quick add word popup
   --build                    build all schemas in current directory
 Install Squirrel:
   --install, --register-input-source    register input source
