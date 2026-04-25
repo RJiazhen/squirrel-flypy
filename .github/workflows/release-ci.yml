@@ -1,8 +1,13 @@
 name: release ci
 on:
   push:
+    # Squirrel Flypy treats any pushed Git tag as a release candidate:
+    # the job builds an installer package, derives changelog text from Git
+    # history, then creates a draft GitHub Release with the package attached.
     tags:
       - '*'
+    # Pushes to master do not create a versioned release. They publish/update
+    # the prerelease "latest" nightly artifact for continuous testing.
     branches:
       - master
   workflow_dispatch:
@@ -16,6 +21,8 @@ jobs:
       - name: Checkout last commit
         uses: actions/checkout@v6
         with:
+          # Full history is required by action-changelog.sh because it compares
+          # the current tag with the previous tag via `git describe`.
           fetch-depth: 0
           submodules: true
 
@@ -25,7 +32,7 @@ jobs:
       - name: Lint
         run: swiftlint
 
-      - name: Build Squirrel
+      - name: Build Squirrel Flypy
         env:
           ARCHS: 'arm64 x86_64'
         run: ./action-build.sh archive
@@ -42,25 +49,27 @@ jobs:
           echo 'changelog<<EOF' >> $GITHUB_OUTPUT
           ./action-changelog.sh >> $GITHUB_OUTPUT
           echo 'EOF' >> $GITHUB_OUTPUT
+        # Only tagged builds have a stable version boundary for the release log.
         if: startsWith(github.ref, 'refs/tags/')
 
       - name: Create release
         if: startsWith(github.ref, 'refs/tags/')
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "package/Squirrel-*.pkg"
+          # `make archive` creates the versioned package name consumed here.
+          artifacts: "package/SquirrelFlypy-*.pkg"
           body: |
             ${{ steps.release_log.outputs.changelog }}
           draft: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create nightly release
-        if: ${{ github.repository == 'rime/squirrel' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.repository == 'RJiazhen/squirrel-flypy' && github.ref == 'refs/heads/master' }}
         uses: 'marvinpinto/action-automatic-releases@latest'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           automatic_release_tag: latest
           prerelease: true
-          title: "Nightly build"
+          title: "Squirrel Flypy nightly build"
           files: |
-            package/Squirrel-*.pkg
+            package/SquirrelFlypy-*.pkg
