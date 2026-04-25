@@ -78,9 +78,42 @@ bash scripts/dev-rebuild.sh --help
 - `action-build.sh`
 - `action-install.sh`
 - `package`
+- `.github/workflows/release-ci.yml`
 
 ### 5) 文档与规划
 
 - `README.md`
 - `PROJECT_STRUCTURE.md`
 - `docs/flypy-optional-features-deferred.md`
+
+## 发布须知
+
+当前发布目标是让用户可以从 GitHub Release 下载 `pkg` 安装包，暂不启用应用内自动更新。
+
+### 正式版本发布
+
+- 推送任意 Git tag 会触发 `.github/workflows/release-ci.yml`。
+- 发布流程会运行 `./action-build.sh archive`，最终生成 `package/SquirrelFlypy-*.pkg`。
+- tag 发布会创建 draft GitHub Release，并上传 `package/SquirrelFlypy-*.pkg`。
+- `action-changelog.sh` 会根据当前 tag 与上一个 tag 之间的 Git 历史生成 release body。
+
+### Nightly 版本发布
+
+- 推送到 `master` 分支会触发 nightly 发布。
+- nightly 发布仅在仓库为 `RJiazhen/squirrel-flypy` 且 ref 为 `refs/heads/master` 时执行。
+- nightly release 使用固定 tag `latest`，并标记为 prerelease。
+- nightly 产物同样上传 `package/SquirrelFlypy-*.pkg`，标题为 `Squirrel Flypy nightly build`。
+- 如果只想验证分支构建，不要把代码直接推到 `master`；普通分支会走 `commit-ci`，只上传 Actions artifact。
+
+### 产物命名与包名
+
+- `Makefile` 中的 `PACKAGE` 为 `package/SquirrelFlypy.pkg`。
+- `package/make_archive` 会把安装包复制为 `SquirrelFlypy-${app_version}.pkg`。
+- GitHub Release 与 nightly release 都匹配 `package/SquirrelFlypy-*.pkg`。
+
+### 自动更新与 appcast
+
+- `resources/Info.plist` 中的 `SUFeedURL` 是 Sparkle 自动更新 feed 地址，不是普通下载地址。
+- 当前 `SUEnableAutomaticChecks` 设为 `false`，表示暂不自动检查更新。
+- `package/make_archive` 仍保留 appcast 生成逻辑，但如果本地或 CI 没有 Sparkle `ed25519` 私钥，`sign_update` 会失败并跳过 appcast，不阻塞 `pkg` 发布。
+- 暂不需要配置 `SPARKLE_PRIVATE_KEY`。后续如果要启用应用内自动更新，再补充 Sparkle 私钥管理、`appcast.xml` 上传和 `SUPublicEDKey` 更新流程。

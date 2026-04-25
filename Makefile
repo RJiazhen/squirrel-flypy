@@ -22,7 +22,7 @@ OPENCC_DATA = data/opencc/TSCharacters.ocd2 \
 	data/opencc/TSPhrases.ocd2 \
 	data/opencc/t2s.json
 SPARKLE_FRAMEWORK = Frameworks/Sparkle.framework
-PACKAGE = package/Squirrel.pkg
+PACKAGE = package/SquirrelFlypy.pkg
 DEPS_CHECK = $(RIME_LIBRARY) $(PLUM_DATA) $(OPENCC_DATA) $(SPARKLE_FRAMEWORK)
 
 OPENCC_DATA_OUTPUT = librime/share/opencc/*.*
@@ -146,11 +146,11 @@ ifdef DEV_ID
 endif
 	bash package/make_package "$(DERIVED_DATA_PATH)"
 ifdef DEV_ID
-	productsign --sign "Developer ID Installer: $(DEV_ID)" package/Squirrel.pkg package/Squirrel-signed.pkg
-	rm package/Squirrel.pkg
-	mv package/Squirrel-signed.pkg package/Squirrel.pkg
-	xcrun notarytool submit package/Squirrel.pkg --keychain-profile "$(DEV_ID)" --wait
-	xcrun stapler staple package/Squirrel.pkg
+	productsign --sign "Developer ID Installer: $(DEV_ID)" package/SquirrelFlypy.pkg package/SquirrelFlypy-signed.pkg
+	rm package/SquirrelFlypy.pkg
+	mv package/SquirrelFlypy-signed.pkg package/SquirrelFlypy.pkg
+	xcrun notarytool submit package/SquirrelFlypy.pkg --keychain-profile "$(DEV_ID)" --wait
+	xcrun stapler staple package/SquirrelFlypy.pkg
 endif
 
 package: release $(PACKAGE)

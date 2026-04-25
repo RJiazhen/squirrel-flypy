@@ -25,7 +25,7 @@ jobs:
       - name: Lint
         run: swiftlint
 
-      - name: Build Squirrel
+      - name: Build Squirrel Flypy
         env:
           ARCHS: 'arm64 x86_64'
         run: ./action-build.sh archive
@@ -48,19 +48,19 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "package/Squirrel-*.pkg"
+          artifacts: "package/SquirrelFlypy-*.pkg"
           body: |
             ${{ steps.release_log.outputs.changelog }}
           draft: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create nightly release
-        if: ${{ github.repository == 'rime/squirrel' && github.ref == 'refs/heads/master' }}
+        if: ${{ github.repository == 'RJiazhen/squirrel-flypy' && github.ref == 'refs/heads/master' }}
         uses: 'marvinpinto/action-automatic-releases@latest'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           automatic_release_tag: latest
           prerelease: true
-          title: "Nightly build"
+          title: "Squirrel Flypy nightly build"
           files: |
-            package/Squirrel-*.pkg
+            package/SquirrelFlypy-*.pkg

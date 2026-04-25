@@ -7,8 +7,14 @@ cd "$(dirname $0)"
 source common.sh
 
 app_version="$(get_app_version)"
-target_pkg="Squirrel-${app_version}.pkg"
-download_url="https://github.com/rime/squirrel/releases/download/${app_version}/${target_pkg}"
+release_repository="${RELEASE_REPOSITORY:-${GITHUB_REPOSITORY:-RJiazhen/squirrel-flypy}}"
+release_base_url="https://github.com/${release_repository}/releases"
+release_tag="${RELEASE_TAG:-${GITHUB_REF_NAME:-${app_version}}}"
+if [ "${GITHUB_REF}" = "refs/heads/master" ]; then
+    release_tag="latest"
+fi
+target_pkg="SquirrelFlypy-${app_version}.pkg"
+download_url="${release_base_url}/download/${release_tag}/${target_pkg}"
 
 verify_archive() {
     if ! [ -f "${target_pkg}" ]; then
@@ -25,7 +31,7 @@ create_archive() {
         echo >&2 "ERROR: target archive already exists: ${target_pkg}"
         exit 1
     fi
-    cp Squirrel.pkg "${target_pkg}"
+    cp SquirrelFlypy.pkg "${target_pkg}"
     echo 'sha256 checksum:'
     shasum -a 256 "${target_pkg}"
 }
@@ -53,13 +59,13 @@ cat > "${appcast_file}" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
-    <title>【鼠鬚管】輸入法更新頻道</title>
-    <link>https://rime.github.io/release/squirrel/appcast.xml</link>
-    <description>鼠鬚管 Appcast 更新頻道</description>
+    <title>Squirrel Flypy 更新频道</title>
+    <link>${release_base_url}/latest/download/appcast.xml</link>
+    <description>Squirrel Flypy Appcast 更新频道</description>
     <language>zh</language>
     <item>
-      <title>鼠鬚管 ${app_version}</title>
-      <sparkle:releaseNotesLink>https://rime.github.io/release/squirrel/</sparkle:releaseNotesLink>
+      <title>Squirrel Flypy ${app_version}</title>
+      <sparkle:releaseNotesLink>${release_base_url}/tag/${release_tag}</sparkle:releaseNotesLink>
       <sparkle:minimumSystemVersion>13.0.0</sparkle:minimumSystemVersion>
       <pubDate>${pub_date}</pubDate>
       <enclosure url="${download_url}"
@@ -81,13 +87,13 @@ cat > "${appcast_file}" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
-    <title>【鼠鬚管】輸入法測試頻道</title>
-    <link>https://rime.github.io/testing/squirrel/appcast.xml</link>
-    <description>鼠鬚管測試版 Appcast 更新頻道</description>
+    <title>Squirrel Flypy 测试频道</title>
+    <link>${release_base_url}/download/latest/appcast.xml</link>
+    <description>Squirrel Flypy 测试版 Appcast 更新频道</description>
     <language>zh</language>
     <item>
-      <title>鼠鬚管 ${app_version}</title>
-      <sparkle:releaseNotesLink>https://rime.github.io/testing/squirrel/</sparkle:releaseNotesLink>
+      <title>Squirrel Flypy ${app_version}</title>
+      <sparkle:releaseNotesLink>${release_base_url}</sparkle:releaseNotesLink>
       <sparkle:minimumSystemVersion>13.0.0</sparkle:minimumSystemVersion>
       <pubDate>${pub_date}</pubDate>
       <enclosure url="${download_url}"
@@ -110,13 +116,13 @@ cat > "${appcast_file}" << EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
   <channel>
-    <title>【鼠鬚管】輸入法本地測試</title>
+    <title>Squirrel Flypy 本地测试</title>
     <link>file://${PROJECT_ROOT}/package/${appcast_file}</link>
-    <description>鼠鬚管 Appcast 更新本地測試</description>
+    <description>Squirrel Flypy Appcast 更新本地测试</description>
     <language>zh</language>
     <item>
-      <title>鼠鬚管 ${app_version}</title>
-      <sparkle:releaseNotesLink>https://rime.github.io/testing/squirrel/</sparkle:releaseNotesLink>
+      <title>Squirrel Flypy ${app_version}</title>
+      <sparkle:releaseNotesLink>${release_base_url}</sparkle:releaseNotesLink>
       <sparkle:minimumSystemVersion>10.9.0</sparkle:minimumSystemVersion>
       <pubDate>${pub_date}</pubDate>
       <enclosure url="${download_url}"
