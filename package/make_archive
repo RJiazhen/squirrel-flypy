@@ -16,6 +16,7 @@ fi
 target_pkg="SquirrelFlypy-${app_version}.pkg"
 download_url="${release_base_url}/download/${release_tag}/${target_pkg}"
 
+# Verifies an existing release package against a supplied sha256 checksum.
 verify_archive() {
     if ! [ -f "${target_pkg}" ]; then
         echo >&2 "ERROR: file does not exit: ${target_pkg}"
@@ -26,6 +27,7 @@ verify_archive() {
     shasum -a 256 -c <<<"${checksum}  ${target_pkg}" || exit 1
 }
 
+# Copies the installer to the versioned filename uploaded by the release workflow.
 create_archive() {
     if [ -e "${target_pkg}" ]; then
         echo >&2 "ERROR: target archive already exists: ${target_pkg}"
@@ -52,7 +54,9 @@ edSignature=$(echo $signature | awk -F'"' '{print $2}')
 length=$(echo $signature | awk -F'"' '{print $4}')
 pub_date=$(date -R)
 
-# for release channel
+# The generated appcast points Sparkle clients at the GitHub Release download
+# URL. This is why the Git tag/version, package filename, and release asset name
+# must stay aligned.
 appcast_file='appcast.xml'
 
 cat > "${appcast_file}" << EOF

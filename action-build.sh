@@ -12,7 +12,9 @@ target="${1:-release}"
 # build dependencies
 # make deps
 
-# build Squirrel
+# In release CI, the workflow passes `archive` here. That target builds Squirrel
+# Flypy, signs Sparkle update metadata, and leaves release artifacts in `package/`
+# for the GitHub Release upload step.
 make "${target}"
 
 echo 'Installer package:'
