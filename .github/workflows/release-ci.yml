@@ -1,4 +1,6 @@
 name: release ci
+permissions:
+  contents: write
 on:
   push:
     # Squirrel Flypy treats any pushed Git tag as a release candidate:

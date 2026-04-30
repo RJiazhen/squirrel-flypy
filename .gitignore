@@ -3,6 +3,8 @@ Squirrel.xcodeproj/*.pbxuser
 Squirrel.xcodeproj/project.xcworkspace/
 Squirrel.xcodeproj/xcuserdata/
 build/
+!flypy-rime-config/build/
+!flypy-rime-config/build/*.bin
 build.log
 Frameworks/*
 bin/*

@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Stages flypy Rime files from flypy-rime-config/rime into build/flypy-staged,
+# Stages flypy Rime files from flypy-rime-config into build/flypy-staged,
 # applies trimmed-bundle patches, then merges them into data/plum for Xcode packaging.
 # The reference tree flypy-rime-config/ is never modified.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-SRC_DIR="${REPO_ROOT}/flypy-rime-config/rime"
+ROOT_CONFIG_DIR="${REPO_ROOT}/flypy-rime-config"
+SRC_DIR="${ROOT_CONFIG_DIR}"
 STAGE_DIR="${REPO_ROOT}/build/flypy-staged"
 OUT_DIR="${REPO_ROOT}/data/plum"
 
@@ -19,7 +20,7 @@ die() {
 
 # Ensures the reference configuration directory exists before staging.
 require_reference_dir() {
-    test -d "${SRC_DIR}" || die "missing ${SRC_DIR}; place upstream flypy files under flypy-rime-config/rime/"
+    test -d "${SRC_DIR}" || die "missing ${SRC_DIR}; place upstream flypy files under flypy-rime-config/"
 }
 
 # Recreates an empty staging directory under build/.
@@ -31,6 +32,11 @@ reset_staging_dir() {
 # Copies the reference Rime tree into the staging directory (excluding junk files).
 copy_reference_into_staging() {
     rsync -a --exclude ".DS_Store" "${SRC_DIR}/" "${STAGE_DIR}/"
+}
+
+# Moves prebuilt Flypy dictionary binaries to the staged root expected by Xcode.
+stage_prebuilt_flypy_bins() {
+    cp "${STAGE_DIR}/build"/flypy.*.bin "${STAGE_DIR}/"
 }
 
 # Removes flypydz artifacts from the staging tree only (reference copy stays intact).
@@ -52,6 +58,7 @@ sync_into_data_plum() {
 require_reference_dir
 reset_staging_dir
 copy_reference_into_staging
+stage_prebuilt_flypy_bins
 remove_staged_flypydz_bundle
 patch_staged_flypy_schema
 sync_into_data_plum

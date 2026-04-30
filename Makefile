@@ -18,12 +18,15 @@ PLUM_DATA = bin/rime-install \
 	data/plum/default.yaml \
 	data/plum/symbols.yaml \
 	data/plum/essay.txt
+FLYPY_DATA = data/plum/flypy.schema.yaml \
+	data/plum/rime.lua \
+	data/plum/squirrel.custom.yaml
 OPENCC_DATA = data/opencc/TSCharacters.ocd2 \
 	data/opencc/TSPhrases.ocd2 \
 	data/opencc/t2s.json
 SPARKLE_FRAMEWORK = Frameworks/Sparkle.framework
 PACKAGE = package/SquirrelFlypy.pkg
-DEPS_CHECK = $(RIME_LIBRARY) $(PLUM_DATA) $(OPENCC_DATA) $(SPARKLE_FRAMEWORK)
+DEPS_CHECK = $(RIME_LIBRARY) $(PLUM_DATA) $(FLYPY_DATA) $(OPENCC_DATA) $(SPARKLE_FRAMEWORK)
 
 OPENCC_DATA_OUTPUT = librime/share/opencc/*.*
 PLUM_DATA_OUTPUT = plum/output/*.*
@@ -59,6 +62,9 @@ data: plum-data opencc-data copy-flypy-bundled-config
 
 $(PLUM_DATA):
 	$(MAKE) plum-data
+
+$(FLYPY_DATA):
+	$(MAKE) copy-flypy-bundled-config
 
 $(OPENCC_DATA):
 	$(MAKE) opencc-data
