@@ -1,0 +1,13 @@
+# coding: utf-8
+# O符字典：oe 引导音标
+
+æ ʌ ɑ:	oea
+ə ɜ:	oee
+ŋ	oen
+ɒ ɔ:	oeo
+ʒ	oer
+θ	oes
+ʃ	oeu
+ð	oez
+ɪ i:	oey
+ʊ u:	oew

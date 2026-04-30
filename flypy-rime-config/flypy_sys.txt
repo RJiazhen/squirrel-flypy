@@ -21,26 +21,19 @@ https://flypy.cc/ix	oix
 ？	;w
 （	;e
 ）	;r
-^	;t
 《	;y
 》	;u
 /	;i
-[	;o
-]	;p
 ！	;a
 ……	;s
 、	;d
 ·	;g
-[	;h
-]	;j
 (	;k
-)	;l
 “	;z
 →	;x
 ”	;c
 ——	;v
 　	;b
-=	;n
 @	;m
 #次选字词
 簟	dmv
