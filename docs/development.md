@@ -84,7 +84,7 @@ bash scripts/dev-rebuild.sh --help
 
 - `README.md`
 - `PROJECT_STRUCTURE.md`
-- `docs/flypy-optional-features-deferred.md`
+- `docs/roadmap.md`
 
 ## 发布须知
 
