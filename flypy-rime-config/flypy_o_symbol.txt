@@ -1,13 +1,20 @@
 # coding: utf-8
-# O符字典：oe 引导音标
+# O符字典，所有由 O 引导输入的符号
 
-æ ʌ ɑ:	oea
-ə ɜ:	oee
+# oe 引导音标
+æ	oea
+ʌ	oea
+ɑ:	oea
+ə	oee
+ɜ:	oee
 ŋ	oen
-ɒ ɔ:	oeo
+ɒ	oeo
+ɔ:	oeo
 ʒ	oer
 θ	oes
 ʃ	oeu
 ð	oez
-ɪ i:	oey
-ʊ u:	oew
+ɪ	oey
+i:	oey
+ʊ	oew
+u:	oew
