@@ -24,4 +24,4 @@
 ## 注意事项
 
 - 请勿将临时文件、系统生成文件（如 `.DS_Store`）作为正式配置提交。
-- 对于暂缓功能（如 `flypydz` 相关裁剪策略），以 `docs/flypy-optional-features-deferred.md` 为准。
+- 对于暂缓功能（如 `flypydz` 相关裁剪策略），以 `docs/roadmap.md` 为准。

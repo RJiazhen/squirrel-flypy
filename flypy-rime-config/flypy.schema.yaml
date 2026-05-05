@@ -52,6 +52,8 @@ engine:
     - lua_translator@date_translator
     - lua_translator@time_translator
     - lua_translator@flypy_express_translator
+    - table_translator@custom_phraseKF
+    - table_translator@custom_phraseOF
     - table_translator@custom_phraseVD
     - table_translator@custom_phraseXT
     - table_translator@custom_phraseYH
@@ -102,6 +104,22 @@ custom_phraseVD:
   enable_sentence: false
   enable_completion: false
   initial_quality: 0 #用户词和系统词重码 置顶
+
+custom_phraseKF:
+  dictionary: ""
+  user_dict: flypy_quick_symbol
+  db_class: stabledb
+  enable_sentence: false
+  enable_completion: false
+  initial_quality: 1 #分号快符优先
+
+custom_phraseOF:
+  dictionary: ""
+  user_dict: flypy_o_symbol
+  db_class: stabledb
+  enable_sentence: false
+  enable_completion: false
+  initial_quality: 1 #O符优先
 
 custom_phraseXT:
   dictionary: ""
