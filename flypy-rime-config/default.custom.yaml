@@ -35,6 +35,16 @@ patch:
       accept: bracketright
       send: Page_Down
 
+  punctuator/import_preset: default
+  punctuator/half_shape:
+    '/': { commit: 、 }
+    '\': { commit: 、 }
+    '$': { commit: "¥" }
+    '%': { commit: "%" }
+    '*': { commit: "*" }
+    '[': { commit: "【" }
+    ']': { commit: "】" }
+
 
 
 
