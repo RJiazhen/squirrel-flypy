@@ -38,53 +38,58 @@ bash scripts/dev-rebuild.sh
 bash scripts/dev-rebuild.sh --help
 ```
 
-## 项目结构
+### 本地一键打包（新流程，生成可安装的 pkg）
 
-- `sources`：macOS 前端主代码（输入控制、候选交互、上屏行为）
-- `librime`：输入引擎与依赖（核心逻辑、部署流程、插件能力）
-- `data`：内置配置资源
-- `plum`：方案与词库安装管理
-- `scripts`：开发与部署辅助脚本
-- `package`：打包相关资源与流程文件
-- `resources`、`Assets.xcassets`、`Rime.icon`：应用资源
-- `Squirrel.xcodeproj`：Xcode 工程
-- `.cursor`：AI 工作流与协作相关文档、规则、技能
+在仓库根目录执行，需已安装 **Xcode**（默认使用 `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`，可通过环境变量覆盖）且 **cmake** 在 `PATH` 中。
 
-## 相关功能开发时涉及到的目录和文件
+```sh
+# 完整流程：拉取/校验依赖（action-install.sh）+ Release 构建 + 打 pkg
+bash scripts/prod-package.sh
+```
 
-### 1) 输入行为与前端交互
+若本地依赖与 plum 资源已就绪、只想跳过安装脚本以加快重复打包，可使用：
 
-- `sources/SquirrelInputController.swift`
-- `sources/SquirrelApplicationDelegate.swift`
+```sh
+bash scripts/prod-package.sh --no-install
+```
 
-### 2) 引擎能力与部署逻辑
+与 CI 发布类似的「带版本号的 pkg 等」请使用 `bash scripts/prod-package.sh --archive`（对应 `make archive`）。
 
-- `librime/src/rime`
-- `librime/src/rime/lever/deployment_tasks.cc`
-- `librime/src/rime_api.h`
-- `librime/src/rime_api_impl.h`
+成功后在 **`package/SquirrelFlypy.pkg`**（`--archive` 时另有 `SquirrelFlypy-*.pkg` 等）得到安装包；在 Finder 中双击用「安装器」安装即可。同一流程连续打包得到的 `.pkg` 文件哈希未必逐字节相同（包元数据会变化），属正常现象。
 
-### 3) 配置与方案接入
+## 项目树（目录/文件职责）
 
-- `data`
-- `flypy-rime-config`
-- `plum`
-- `docs/config-files.md`
-
-### 4) 本地调试、构建、打包
-
-- `scripts/dev-rebuild.sh`
-- `Makefile`
-- `action-build.sh`
-- `action-install.sh`
-- `package`
-- `.github/workflows/release-ci.yml`
-
-### 5) 文档与规划
-
-- `README.md`
-- `PROJECT_STRUCTURE.md`
-- `docs/roadmap.md`
+```text
+squirrel-flypy/
+├─ sources/                         # macOS 输入法前端主代码
+│  ├─ Main.swift                    # 应用入口与启动参数分流（安装/重载/主程序）
+│  ├─ SquirrelApplicationDelegate.swift  # 生命周期、部署、通知、快速加词入口
+│  ├─ SquirrelInputController.swift # 输入事件处理、上屏、与 Rime 会话交互
+│  ├─ QuickAddWordPanel.swift       # 快速加词弹窗 UI 与交互逻辑
+│  └─ FlypydzSingleCharCodeIndex.swift  # flypydz 单字编码内存索引
+├─ librime/                         # 输入引擎源码与 API（子模块）
+├─ flypy-rime-config/               # flypy 参考配置（上游/只读参考）
+├─ data/                            # 打包进应用的配置与资源（含 plum/opencc）
+├─ scripts/                         # 开发、部署、安装辅助脚本
+│  ├─ dev-rebuild.sh                # 本地快速重编译与重载
+│  ├─ prod-package.sh               # 本地一键生产打包（依赖检查 + make package/archive）
+│  ├─ postinstall                   # pkg 安装后注册与配置复制
+│  └─ stage-flypy-for-data-plum.sh  # flypy 配置 staging 与裁剪同步
+├─ package/                         # 安装包构建脚本与产物目录
+├─ resources/                       # Info.plist、entitlements 等应用资源
+├─ Assets.xcassets/                 # App 图标与资源集
+├─ Squirrel.xcodeproj/              # Xcode 工程与 target 配置
+├─ docs/                            # 项目文档（开发、配置、路线图）
+│  ├─ development.md                # 开发总文档（本文件）
+│  ├─ config-files.md               # 配置文件说明
+│  └─ roadmap.md                    # 功能路线图与阶段规划
+├─ .github/workflows/               # CI/CD 工作流（commit/release/nightly）
+├─ .cursor/                         # Cursor 规则、技能、工作流文档
+├─ Makefile                         # 常用构建入口
+├─ action-build.sh                  # CI 本地一致的构建入口
+├─ action-install.sh                # 安装流程入口（CI/本地复用）
+└─ README.md                        # 项目说明与使用/开发入口
+```
 
 ## 发布须知
 
