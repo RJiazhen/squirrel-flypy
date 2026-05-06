@@ -11,10 +11,30 @@ squirrel_app_root="${squirrel_install_location}/SquirrelFlypy.app"
 squirrel_executable="${squirrel_app_root}/Contents/MacOS/SquirrelFlypy"
 rime_package_installer="${squirrel_app_root}/Contents/MacOS/rime-install"
 rime_shared_data_path="${squirrel_app_root}/Contents/SharedSupport"
-# Bundled flypy reference config is copied from this directory when available.
+# Bundled flypy reference config is copied from this directory (must exist or postinstall fails).
 rime_flypy_config_path="${rime_shared_data_path}/flypy-rime-config"
 # User writable Rime config directory for Squirrel Flypy.
 rime_user_data_path="${login_home}/Library/Rime Flypy"
+# Paths relative to flypy-rime-config: if the destination already exists, do not copy over it during postinstall.
+POSTINSTALL_SKIP_OVERWRITE_IF_EXISTS=(
+    flypy_user.txt
+    flypy_top.txt
+)
+
+# Returns 0 when relpath is listed in POSTINSTALL_SKIP_OVERWRITE_IF_EXISTS and should not replace an existing destination.
+postinstall_should_skip_overwrite_if_exists() {
+    local relpath="$1"
+    local item
+    for item in "${POSTINSTALL_SKIP_OVERWRITE_IF_EXISTS[@]}"; do
+        [ "${relpath}" = "${item}" ] && return 0
+    done
+    return 1
+}
+
+if [ ! -d "${rime_flypy_config_path}" ]; then
+    echo "postinstall: missing bundled flypy config directory: ${rime_flypy_config_path}" >&2
+    exit 1
+fi
 
 # Stops running Squirrel process before replacing files and deploying.
 /usr/bin/sudo -u "${login_user}" /usr/bin/killall SquirrelFlypy > /dev/null || true
@@ -22,24 +42,22 @@ rime_user_data_path="${login_home}/Library/Rime Flypy"
 # Ensures the input source is registered after installation.
 "${squirrel_executable}" --register-input-source
 
-# Copies bundled flypy config files into user data directory with overwrite.
+# Copies bundled flypy config into the user data directory; listed relative paths skip overwriting existing files.
 /usr/bin/sudo -u "${login_user}" /bin/mkdir -p "${rime_user_data_path}"
-if [ -d "${rime_flypy_config_path}" ]; then
-    /usr/bin/sudo -u "${login_user}" /bin/cp -Rf "${rime_flypy_config_path}/." "${rime_user_data_path}/"
-elif [ -f "${rime_shared_data_path}/flypy.schema.yaml" ]; then
-    # Fallback for debug/dev bundles where flypy files are flattened under SharedSupport.
-    for config_file in "${rime_shared_data_path}"/*.yaml "${rime_shared_data_path}"/*.txt "${rime_shared_data_path}"/*.lua; do
-        [ -e "${config_file}" ] || continue
-        /usr/bin/sudo -u "${login_user}" /bin/cp -f "${config_file}" "${rime_user_data_path}/"
-    done
-    for config_dir in "${rime_shared_data_path}/lua" "${rime_shared_data_path}/opencc"; do
-        [ -d "${config_dir}" ] || continue
-        /usr/bin/sudo -u "${login_user}" /bin/cp -Rf "${config_dir}" "${rime_user_data_path}/"
-    done
-else
-    echo "postinstall: missing bundled flypy config. expected ${rime_flypy_config_path} or flypy.schema.yaml in ${rime_shared_data_path}" >&2
-    exit 1
-fi
+while IFS= read -r -d '' _postinstall_src; do
+    _postinstall_rel="${_postinstall_src#${rime_flypy_config_path}/}"
+    _postinstall_dest="${rime_user_data_path}/${_postinstall_rel}"
+    /usr/bin/sudo -u "${login_user}" /bin/mkdir -p "${_postinstall_dest}"
+done < <(/usr/bin/find "${rime_flypy_config_path}" -mindepth 1 -type d -print0)
+while IFS= read -r -d '' _postinstall_src; do
+    _postinstall_rel="${_postinstall_src#${rime_flypy_config_path}/}"
+    _postinstall_dest="${rime_user_data_path}/${_postinstall_rel}"
+    if postinstall_should_skip_overwrite_if_exists "${_postinstall_rel}" && [ -f "${_postinstall_dest}" ]; then
+        continue
+    fi
+    /usr/bin/sudo -u "${login_user}" /bin/mkdir -p "$(/usr/bin/dirname "${_postinstall_dest}")"
+    /usr/bin/sudo -u "${login_user}" /bin/cp -Rf "${_postinstall_src}" "${_postinstall_dest}"
+done < <(/usr/bin/find "${rime_flypy_config_path}" -mindepth 1 ! -type d -print0)
 
 # Builds schemas from SharedSupport unless explicitly disabled for fast debug install.
 if [ -z "${RIME_NO_PREBUILD}" ]; then

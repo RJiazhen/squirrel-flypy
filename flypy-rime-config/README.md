@@ -13,7 +13,7 @@
 - 构建时会将本目录中的配置同步到 `data/plum/`（或 staging 后再同步）。
 - `package/add_data_files` 会扫描 `data/plum/*`，并将文件加入 Xcode 的 `Copy Shared Support Files` 阶段。
 - 打包后文件进入 `SquirrelFlypy.app/Contents/SharedSupport`。
-- 安装阶段 `scripts/postinstall` 会将 `SharedSupport/flypy-rime-config` 下的文件覆盖到用户目录 `~/Library/Rime Flypy`。
+- 安装阶段 `scripts/postinstall` **仅**从 `SharedSupport/flypy-rime-config` 复制到用户目录 `~/Library/Rime Flypy`（不会从 `SharedSupport` 根目录扁平化复制）；若包内缺少该子目录，postinstall 会失败退出。
 
 ## 更新建议
 
