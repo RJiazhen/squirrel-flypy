@@ -557,12 +557,14 @@ private extension SquirrelInputController {
     }
   }
 
+  /// Inserts committed text into the client, clears preedit UI, and records the last characters for quick-add defaults.
   func commit(string: String) {
     guard let client = client else { return }
     // print("[DEBUG] commitString: \(string)")
     client.insertText(string, replacementRange: .empty)
     preedit = ""
     hidePalettes()
+    NSApp.squirrelAppDelegate.recordCommittedTextForQuickAddTail(string)
   }
 
   func show(preedit: String, selRange: NSRange, caretPos: Int) {

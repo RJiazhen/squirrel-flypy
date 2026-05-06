@@ -21,6 +21,13 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
   var panel: SquirrelPanel?
   var quickAddWordPanel: QuickAddWordPanel?
   private var quickAddWordActivationPolicyBeforePanel: NSApplication.ActivationPolicy?
+  /// Maximum committed characters retained for quick-add tail selection.
+  private static let quickAddCommittedBufferMaxCharacters = 64
+  /// Recent committed characters used to derive the default quick-add phrase tail.
+  private var quickAddCommittedBuffer: String = ""
+  /// Number of trailing characters taken from `quickAddCommittedBuffer` when opening quick-add without an explicit phrase.
+  private var quickAddTailSliceLength: Int = 2
+  private let flypydzSingleCharIndex = FlypydzSingleCharCodeIndex()
   var enableNotifications = false
   let updateController = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
   var supportsGentleScheduledUpdateReminders: Bool {
@@ -111,12 +118,85 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
         self.quickAddWordPanel?.delegate = self
       }
       self.prepareActivationPolicyForQuickAddPanel()
-      self.quickAddWordPanel?.show(prefillWord: prefillWord, prefillCode: prefillCode)
+      let resolvedWord = prefillWord ?? self.quickAddDefaultPhraseFromCommittedBuffer()
+      var resolvedCode = prefillCode
+      if resolvedCode == nil, let w = resolvedWord {
+        resolvedCode = self.quickAddAutoCode(forWord: w)
+      }
+      self.quickAddWordPanel?.show(prefillWord: resolvedWord, prefillCode: resolvedCode)
     }
   }
 
+  /// Appends committed text into the rolling buffer used for quick-add phrase defaults.
+  func recordCommittedTextForQuickAddTail(_ fragment: String) {
+    let apply = {
+      guard !fragment.isEmpty else { return }
+      var merged = self.quickAddCommittedBuffer + fragment
+      if merged.count > Self.quickAddCommittedBufferMaxCharacters {
+        merged = String(merged.suffix(Self.quickAddCommittedBufferMaxCharacters))
+      }
+      self.quickAddCommittedBuffer = merged
+      self.quickAddTailSliceLength = min(max(1, self.quickAddTailSliceLength), merged.count)
+    }
+    if Thread.isMainThread {
+      apply()
+    } else {
+      DispatchQueue.main.async(execute: apply)
+    }
+  }
+
+  /// Looks up the flypy shape encoding for a single graphic character using `flypydz.dict.yaml`.
+  func flypydzCode(forQuickAddWord word: String) -> String? {
+    guard word.count == 1 else { return nil }
+    let user = SquirrelApp.userDir.appendingPathComponent("flypydz.dict.yaml")
+    let sharedSupportURL: URL? = Bundle.main.sharedSupportPath.map {
+      URL(fileURLWithPath: $0).appendingPathComponent("flypydz.dict.yaml")
+    }
+    flypydzSingleCharIndex.ensureLoaded(preferringUser: user, sharedFallback: sharedSupportURL)
+    return flypydzSingleCharIndex.code(for: word)
+  }
+
+  /// Builds a 4-letter quick-add code from flypydz character codes for 1/2/3/4+ character phrases.
+  func quickAddAutoCode(forWord word: String) -> String? {
+    let chars = word.trimmingCharacters(in: .whitespacesAndNewlines).map { String($0) }
+    guard !chars.isEmpty else { return nil }
+    let codes = chars.map { flypydzCode(forQuickAddWord: $0) ?? "" }
+    guard codes.allSatisfy({ !$0.isEmpty }) else { return nil }
+    if chars.count == 1 {
+      return codes[0]
+    }
+    if chars.count == 2 {
+      guard codes[0].count >= 2, codes[1].count >= 2 else { return nil }
+      return String(codes[0].prefix(2) + codes[1].prefix(2))
+    }
+    if chars.count == 3 {
+      guard codes[0].count >= 1, codes[1].count >= 1, codes[2].count >= 2 else { return nil }
+      return String(codes[0].prefix(1) + codes[1].prefix(1) + codes[2].prefix(2))
+    }
+    guard codes[0].count >= 1, codes[1].count >= 1, codes[2].count >= 1, codes[codes.count - 1].count >= 1 else { return nil }
+    return String(codes[0].prefix(1) + codes[1].prefix(1) + codes[2].prefix(1) + codes[codes.count - 1].prefix(1))
+  }
+
+  /// Applies an arrow-key delta to the tail slice length and returns the refreshed phrase when still in range.
+  func quickAddAdjustTailSliceAndReturnPhrase(delta: Int) -> String? {
+    guard !quickAddCommittedBuffer.isEmpty else { return nil }
+    let maxLen = quickAddCommittedBuffer.count
+    let next = quickAddTailSliceLength + delta
+    guard next >= 1, next <= maxLen else { return nil }
+    quickAddTailSliceLength = next
+    return String(quickAddCommittedBuffer.suffix(next))
+  }
+
+  /// Builds the default quick-add phrase suffix from committed input history when none is explicitly supplied.
+  private func quickAddDefaultPhraseFromCommittedBuffer() -> String? {
+    guard !quickAddCommittedBuffer.isEmpty else { return nil }
+    let n = min(quickAddTailSliceLength, quickAddCommittedBuffer.count)
+    guard n >= 1 else { return nil }
+    return String(quickAddCommittedBuffer.suffix(n))
+  }
+
   /// Handles panel confirm callbacks by validating and persisting a phrase entry.
-  func quickAddWordPanel(_ panel: QuickAddWordPanel, didConfirmWord word: String, code: String, shouldPinEntry _: Bool, shouldBuildFromClipboard _: Bool) {
+  func quickAddWordPanel(_ panel: QuickAddWordPanel, didConfirmWord word: String, code: String, shouldPinEntry: Bool) {
     guard !word.isEmpty, !code.isEmpty else {
       Self.showMessage(msgText: "快速加词失败：词条和编码不能为空")
       return
@@ -126,7 +206,7 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
       return
     }
     do {
-      try appendQuickAddWord(word: word, code: code)
+      try appendQuickAddWord(word: word, code: code, pinToTop: shouldPinEntry)
       panel.hide()
       self.restoreActivationPolicyAfterQuickAddPanelIfNeeded()
       if quickAddWordPanel === panel {
@@ -413,9 +493,19 @@ private extension SquirrelApplicationDelegate {
     SquirrelApp.userDir.appendingPathComponent("flypy_user.txt", isDirectory: false)
   }
 
-  /// Appends a new quick-add entry to the user dictionary file.
-  func appendQuickAddWord(word: String, code: String) throws {
-    let fileURL = quickAddUserDictURL()
+  /// Returns the target top dictionary file path used by pinned quick-add entries.
+  func quickAddTopDictURL() -> URL {
+    SquirrelApp.userDir.appendingPathComponent("flypy_top.txt", isDirectory: false)
+  }
+
+  /// Appends a new quick-add entry to either top or user dictionary based on pin option.
+  func appendQuickAddWord(word: String, code: String, pinToTop: Bool) throws {
+    let fileURL = pinToTop ? quickAddTopDictURL() : quickAddUserDictURL()
+    try appendQuickAddWord(word: word, code: code, to: fileURL)
+  }
+
+  /// Appends one quick-add dictionary line to the specified dictionary file.
+  func appendQuickAddWord(word: String, code: String, to fileURL: URL) throws {
     let line = "\(word)\t\(code)"
     let fileManager = FileManager.default
     if !fileManager.fileExists(atPath: fileURL.path(percentEncoded: false)) {
