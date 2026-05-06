@@ -86,6 +86,21 @@ bash scripts/dev-rebuild.sh --help
 - `PROJECT_STRUCTURE.md`
 - `docs/roadmap.md`
 
+### 6) 快速加词弹窗扩展模块（M3）
+
+- `sources/QuickAddWordPanel.swift`
+  - 快速加词弹窗 UI、词条/编码表单行为、剪贴板造词、方向键长度调节与快捷键分发。
+- `sources/SquirrelApplicationDelegate.swift`
+  - 快速加词入口编排、默认词条与默认编码计算、固项写入路由（`flypy_top.txt` / `flypy_user.txt`）。
+- `sources/SquirrelInputController.swift`
+  - 上屏提交文本回传，用于维护“最近输入”上下文并支持弹窗默认词条。
+- `sources/FlypydzSingleCharCodeIndex.swift`
+  - 维护 `flypydz.dict.yaml` 的内存单字索引，支撑快速加词自动编码查询。
+- `scripts/postinstall`
+  - 安装时复制 flypy 配置，缺失 `flypy-rime-config` 目录时回退平铺 SharedSupport 文件复制。
+- `Squirrel.xcodeproj/project.pbxproj`
+  - 将新增源码纳入 `Sources` 编译目标并保持工程文件引用完整。
+
 ## 发布须知
 
 当前发布目标是让用户可以从 GitHub Release 下载 `pkg` 安装包，暂不启用应用内自动更新。
