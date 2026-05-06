@@ -27,24 +27,15 @@ rime_user_data_path="${login_home}/Library/Rime Flypy"
 if [ -d "${rime_flypy_config_path}" ]; then
     /usr/bin/sudo -u "${login_user}" /bin/cp -Rf "${rime_flypy_config_path}/." "${rime_user_data_path}/"
 elif [ -f "${rime_shared_data_path}/flypy.schema.yaml" ]; then
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypy.schema.yaml" "${rime_user_data_path}/"
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypy.custom.yaml" "${rime_user_data_path}/" 2>/dev/null || true
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypy_top.txt" "${rime_user_data_path}/" 2>/dev/null || true
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypy_user.txt" "${rime_user_data_path}/" 2>/dev/null || true
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypy_sys.txt" "${rime_user_data_path}/" 2>/dev/null || true
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypy_ok.txt" "${rime_user_data_path}/" 2>/dev/null || true
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypy_quick_symbol.txt" "${rime_user_data_path}/" 2>/dev/null || true
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypy_o_symbol.txt" "${rime_user_data_path}/" 2>/dev/null || true
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypydz.schema.yaml" "${rime_user_data_path}/" 2>/dev/null || true
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypydz.dict.yaml" "${rime_user_data_path}/" 2>/dev/null || true
-    /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/rime.lua" "${rime_user_data_path}/" 2>/dev/null || true
-    if [ -f "${rime_shared_data_path}/flypy_express.lua" ]; then
-        /usr/bin/sudo -u "${login_user}" /bin/mkdir -p "${rime_user_data_path}/lua"
-        /usr/bin/sudo -u "${login_user}" /bin/cp -f "${rime_shared_data_path}/flypy_express.lua" "${rime_user_data_path}/lua/"
-    fi
-    if [ -d "${rime_shared_data_path}/opencc" ]; then
-        /usr/bin/sudo -u "${login_user}" /bin/cp -Rf "${rime_shared_data_path}/opencc" "${rime_user_data_path}/"
-    fi
+    # Fallback for debug/dev bundles where flypy files are flattened under SharedSupport.
+    for config_file in "${rime_shared_data_path}"/*.yaml "${rime_shared_data_path}"/*.txt "${rime_shared_data_path}"/*.lua; do
+        [ -e "${config_file}" ] || continue
+        /usr/bin/sudo -u "${login_user}" /bin/cp -f "${config_file}" "${rime_user_data_path}/"
+    done
+    for config_dir in "${rime_shared_data_path}/lua" "${rime_shared_data_path}/opencc"; do
+        [ -d "${config_dir}" ] || continue
+        /usr/bin/sudo -u "${login_user}" /bin/cp -Rf "${config_dir}" "${rime_user_data_path}/"
+    done
 else
     echo "postinstall: missing bundled flypy config. expected ${rime_flypy_config_path} or flypy.schema.yaml in ${rime_shared_data_path}" >&2
     exit 1
