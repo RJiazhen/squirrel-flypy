@@ -38,68 +38,38 @@ bash scripts/dev-rebuild.sh
 bash scripts/dev-rebuild.sh --help
 ```
 
-## 项目结构
+## 项目树（目录/文件职责）
 
-- `sources`：macOS 前端主代码（输入控制、候选交互、上屏行为）
-- `librime`：输入引擎与依赖（核心逻辑、部署流程、插件能力）
-- `data`：内置配置资源
-- `plum`：方案与词库安装管理
-- `scripts`：开发与部署辅助脚本
-- `package`：打包相关资源与流程文件
-- `resources`、`Assets.xcassets`、`Rime.icon`：应用资源
-- `Squirrel.xcodeproj`：Xcode 工程
-- `.cursor`：AI 工作流与协作相关文档、规则、技能
-
-## 相关功能开发时涉及到的目录和文件
-
-### 1) 输入行为与前端交互
-
-- `sources/SquirrelInputController.swift`
-- `sources/SquirrelApplicationDelegate.swift`
-
-### 2) 引擎能力与部署逻辑
-
-- `librime/src/rime`
-- `librime/src/rime/lever/deployment_tasks.cc`
-- `librime/src/rime_api.h`
-- `librime/src/rime_api_impl.h`
-
-### 3) 配置与方案接入
-
-- `data`
-- `flypy-rime-config`
-- `plum`
-- `docs/config-files.md`
-
-### 4) 本地调试、构建、打包
-
-- `scripts/dev-rebuild.sh`
-- `Makefile`
-- `action-build.sh`
-- `action-install.sh`
-- `package`
-- `.github/workflows/release-ci.yml`
-
-### 5) 文档与规划
-
-- `README.md`
-- `PROJECT_STRUCTURE.md`
-- `docs/roadmap.md`
-
-### 6) 快速加词弹窗扩展模块（M3）
-
-- `sources/QuickAddWordPanel.swift`
-  - 快速加词弹窗 UI、词条/编码表单行为、剪贴板造词、方向键长度调节与快捷键分发。
-- `sources/SquirrelApplicationDelegate.swift`
-  - 快速加词入口编排、默认词条与默认编码计算、固项写入路由（`flypy_top.txt` / `flypy_user.txt`）。
-- `sources/SquirrelInputController.swift`
-  - 上屏提交文本回传，用于维护“最近输入”上下文并支持弹窗默认词条。
-- `sources/FlypydzSingleCharCodeIndex.swift`
-  - 维护 `flypydz.dict.yaml` 的内存单字索引，支撑快速加词自动编码查询。
-- `scripts/postinstall`
-  - 安装时复制 flypy 配置，缺失 `flypy-rime-config` 目录时回退平铺 SharedSupport 文件复制。
-- `Squirrel.xcodeproj/project.pbxproj`
-  - 将新增源码纳入 `Sources` 编译目标并保持工程文件引用完整。
+```text
+squirrel-flypy/
+├─ sources/                         # macOS 输入法前端主代码
+│  ├─ Main.swift                    # 应用入口与启动参数分流（安装/重载/主程序）
+│  ├─ SquirrelApplicationDelegate.swift  # 生命周期、部署、通知、快速加词入口
+│  ├─ SquirrelInputController.swift # 输入事件处理、上屏、与 Rime 会话交互
+│  ├─ QuickAddWordPanel.swift       # 快速加词弹窗 UI 与交互逻辑
+│  └─ FlypydzSingleCharCodeIndex.swift  # flypydz 单字编码内存索引
+├─ librime/                         # 输入引擎源码与 API（子模块）
+├─ flypy-rime-config/               # flypy 参考配置（上游/只读参考）
+├─ data/                            # 打包进应用的配置与资源（含 plum/opencc）
+├─ scripts/                         # 开发、部署、安装辅助脚本
+│  ├─ dev-rebuild.sh                # 本地快速重编译与重载
+│  ├─ postinstall                   # pkg 安装后注册与配置复制
+│  └─ stage-flypy-for-data-plum.sh  # flypy 配置 staging 与裁剪同步
+├─ package/                         # 安装包构建脚本与产物目录
+├─ resources/                       # Info.plist、entitlements 等应用资源
+├─ Assets.xcassets/                 # App 图标与资源集
+├─ Squirrel.xcodeproj/              # Xcode 工程与 target 配置
+├─ docs/                            # 项目文档（开发、配置、路线图）
+│  ├─ development.md                # 开发总文档（本文件）
+│  ├─ config-files.md               # 配置文件说明
+│  └─ roadmap.md                    # 功能路线图与阶段规划
+├─ .github/workflows/               # CI/CD 工作流（commit/release/nightly）
+├─ .cursor/                         # Cursor 规则、技能、工作流文档
+├─ Makefile                         # 常用构建入口
+├─ action-build.sh                  # CI 本地一致的构建入口
+├─ action-install.sh                # 安装流程入口（CI/本地复用）
+└─ README.md                        # 项目说明与使用/开发入口
+```
 
 ## 发布须知
 
