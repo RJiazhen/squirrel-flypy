@@ -120,8 +120,8 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
       self.prepareActivationPolicyForQuickAddPanel()
       let resolvedWord = prefillWord ?? self.quickAddDefaultPhraseFromCommittedBuffer()
       var resolvedCode = prefillCode
-      if resolvedCode == nil, let w = resolvedWord {
-        resolvedCode = self.quickAddAutoCode(forWord: w)
+      if resolvedCode == nil, let word = resolvedWord {
+        resolvedCode = self.quickAddAutoCode(forWord: word)
       }
       self.quickAddWordPanel?.show(prefillWord: resolvedWord, prefillCode: resolvedCode)
     }
@@ -190,9 +190,9 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
   /// Builds the default quick-add phrase suffix from committed input history when none is explicitly supplied.
   private func quickAddDefaultPhraseFromCommittedBuffer() -> String? {
     guard !quickAddCommittedBuffer.isEmpty else { return nil }
-    let n = min(quickAddTailSliceLength, quickAddCommittedBuffer.count)
-    guard n >= 1 else { return nil }
-    return String(quickAddCommittedBuffer.suffix(n))
+    let sliceLength = min(quickAddTailSliceLength, quickAddCommittedBuffer.count)
+    guard sliceLength >= 1 else { return nil }
+    return String(quickAddCommittedBuffer.suffix(sliceLength))
   }
 
   /// Handles panel confirm callbacks by validating and persisting a phrase entry.
