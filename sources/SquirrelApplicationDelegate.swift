@@ -116,7 +116,7 @@ final class SquirrelApplicationDelegate: NSObject, NSApplicationDelegate, SPUSta
   }
 
   /// Handles panel confirm callbacks by validating and persisting a phrase entry.
-  func quickAddWordPanel(_ panel: QuickAddWordPanel, didConfirmWord word: String, code: String) {
+  func quickAddWordPanel(_ panel: QuickAddWordPanel, didConfirmWord word: String, code: String, shouldPinEntry _: Bool, shouldBuildFromClipboard _: Bool) {
     guard !word.isEmpty, !code.isEmpty else {
       Self.showMessage(msgText: "快速加词失败：词条和编码不能为空")
       return
