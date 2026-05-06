@@ -21,8 +21,8 @@ private func quickAddPanelDispatchStandardEditCommand(_ event: NSEvent, sender: 
     }
     return NSApp.sendAction(Selector(("undo:")), to: nil, from: sender)
   }
-  guard ch.count == 1, let c = ch.first else { return false }
-  switch c {
+  guard ch.count == 1, let key = ch.first else { return false }
+  switch key {
   case "a":
     return NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: sender)
   case "c":
@@ -482,9 +482,9 @@ private extension QuickAddWordPanel {
         let chain = self.quickAddKeyViewChain
         guard !chain.isEmpty else { return event }
         let forward = !event.modifierFlags.intersection(.deviceIndependentFlagsMask).contains(.shift)
-        let n = chain.count
-        let j = forward ? (idx + 1) % n : (idx - 1 + n) % n
-        let target = chain[j]
+        let count = chain.count
+        let nextIndex = forward ? (idx + 1) % count : (idx - 1 + count) % count
+        let target = chain[nextIndex]
         self.panel.makeFirstResponder(target)
         return nil
       }
