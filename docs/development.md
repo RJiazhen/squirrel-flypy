@@ -38,6 +38,25 @@ bash scripts/dev-rebuild.sh
 bash scripts/dev-rebuild.sh --help
 ```
 
+### 本地一键打包（新流程，生成可安装的 pkg）
+
+在仓库根目录执行，需已安装 **Xcode**（默认使用 `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`，可通过环境变量覆盖）且 **cmake** 在 `PATH` 中。
+
+```sh
+# 完整流程：拉取/校验依赖（action-install.sh）+ Release 构建 + 打 pkg
+bash scripts/prod-package.sh
+```
+
+若本地依赖与 plum 资源已就绪、只想跳过安装脚本以加快重复打包，可使用：
+
+```sh
+bash scripts/prod-package.sh --no-install
+```
+
+与 CI 发布类似的「带版本号的 pkg 等」请使用 `bash scripts/prod-package.sh --archive`（对应 `make archive`）。
+
+成功后在 **`package/SquirrelFlypy.pkg`**（`--archive` 时另有 `SquirrelFlypy-*.pkg` 等）得到安装包；在 Finder 中双击用「安装器」安装即可。同一流程连续打包得到的 `.pkg` 文件哈希未必逐字节相同（包元数据会变化），属正常现象。
+
 ## 项目树（目录/文件职责）
 
 ```text
@@ -53,6 +72,7 @@ squirrel-flypy/
 ├─ data/                            # 打包进应用的配置与资源（含 plum/opencc）
 ├─ scripts/                         # 开发、部署、安装辅助脚本
 │  ├─ dev-rebuild.sh                # 本地快速重编译与重载
+│  ├─ prod-package.sh               # 本地一键生产打包（依赖检查 + make package/archive）
 │  ├─ postinstall                   # pkg 安装后注册与配置复制
 │  └─ stage-flypy-for-data-plum.sh  # flypy 配置 staging 与裁剪同步
 ├─ package/                         # 安装包构建脚本与产物目录
