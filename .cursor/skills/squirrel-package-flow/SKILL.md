@@ -30,6 +30,14 @@ Run a minimal, repeatable packaging flow for this repo and produce the installer
 
 Run from repository root.
 
+### One command (local)
+
+```sh
+bash scripts/prod-package.sh
+```
+
+Optional: `bash scripts/prod-package.sh --no-install` if `action-install.sh` was already run; `bash scripts/prod-package.sh --archive` for the `make archive` path (versioned pkg / release helpers).
+
 ### 1) Prepare binary assets (if missing)
 
 ```sh
