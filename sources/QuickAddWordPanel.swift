@@ -126,6 +126,8 @@ final class QuickAddWordPanel: NSObject, NSWindowDelegate, NSTextViewDelegate, N
   private var tailLengthKeyMonitor: Any?
   /// Code value last applied automatically from flypydz when the trimmed word stays a single character.
   private var flypydzAutoSuggestedCode: String?
+  /// Ordered views that participate in Tab / Shift-Tab cycling for this panel.
+  private var quickAddKeyViewChain: [NSView] = []
   weak var delegate: QuickAddWordPanelDelegate?
 
   /// Creates the quick add word panel and all form controls.
@@ -265,6 +267,7 @@ private extension QuickAddWordPanel {
     let wordLabel = NSTextField(labelWithString: "词条")
     let wordAreaBottomY = contentHeight - topInset - wordAreaHeight
     wordLabel.frame = NSRect(x: 24, y: wordAreaBottomY + wordAreaHeight - 22, width: 60, height: 22)
+    wordLabel.refusesFirstResponder = true
     contentView.addSubview(wordLabel)
 
     wordScrollView.frame = NSRect(x: 88, y: wordAreaBottomY, width: 340, height: wordAreaHeight)
@@ -301,15 +304,13 @@ private extension QuickAddWordPanel {
     let codeLabel = NSTextField(labelWithString: "编码")
     let codeRowY = wordAreaBottomY - rowSpacing - controlHeight
     codeLabel.frame = NSRect(x: 24, y: codeRowY + 2, width: 60, height: 22)
+    codeLabel.refusesFirstResponder = true
     contentView.addSubview(codeLabel)
 
     codeField.frame = NSRect(x: 88, y: codeRowY, width: 340, height: controlHeight)
     codeField.placeholderString = "请输入编码"
     codeField.delegate = self
     contentView.addSubview(codeField)
-
-    wordTextView.nextKeyView = codeField
-    codeField.nextKeyView = wordTextView
 
     let checkboxRowY = codeRowY - rowSpacing - 22
     pinEntryCheckbox.frame = NSRect(x: 88, y: checkboxRowY, width: 180, height: 22)
@@ -336,6 +337,23 @@ private extension QuickAddWordPanel {
     confirmButton.target = self
     confirmButton.action = #selector(confirm)
     contentView.addSubview(confirmButton)
+    let tipLabel = NSTextField(labelWithString: "可用 ↑、↓ 更改词长")
+    tipLabel.font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+    tipLabel.textColor = NSColor.secondaryLabelColor
+    tipLabel.alignment = .right
+    tipLabel.frame = NSRect(x: 96, y: buttonRowY + 6, width: 144, height: 18)
+    tipLabel.refusesFirstResponder = true
+    contentView.addSubview(tipLabel)
+
+    panel.autorecalculatesKeyViewLoop = false
+    wordTextView.nextKeyView = codeField
+    codeField.nextKeyView = pinEntryCheckbox
+    pinEntryCheckbox.nextKeyView = buildFromClipboardCheckbox
+    buildFromClipboardCheckbox.nextKeyView = confirmButton
+    confirmButton.nextKeyView = cancelButton
+    cancelButton.nextKeyView = wordTextView
+    panel.initialFirstResponder = wordTextView
+    quickAddKeyViewChain = [wordTextView, codeField, pinEntryCheckbox, buildFromClipboardCheckbox, confirmButton, cancelButton]
 
     NotificationCenter.default.addObserver(self, selector: #selector(quickAddCodeControlTextDidChange(_:)), name: NSControl.textDidChangeNotification, object: codeField)
   }
@@ -444,12 +462,32 @@ private extension QuickAddWordPanel {
     return true
   }
 
+  /// Maps the current first responder to an index in `quickAddKeyViewChain`, treating the code field editor as the code field.
+  func resolveQuickAddKeyViewIndex() -> Int? {
+    guard let fr = panel.firstResponder as? NSView else { return nil }
+    if let editor = codeField.currentEditor(), fr === editor {
+      return quickAddKeyViewChain.firstIndex(where: { $0 === codeField })
+    }
+    return quickAddKeyViewChain.firstIndex(where: { $0 === fr })
+  }
+
   /// Observes key-down events so arrow keys can resize the recent-commit tail from anywhere inside the panel.
   func installTailLengthKeyMonitorIfNeeded() {
     guard tailLengthKeyMonitor == nil else { return }
     tailLengthKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
       guard let self else { return event }
       guard event.window === self.panel else { return event }
+      if event.keyCode == 48 {
+        guard let idx = self.resolveQuickAddKeyViewIndex() else { return event }
+        let chain = self.quickAddKeyViewChain
+        guard !chain.isEmpty else { return event }
+        let forward = !event.modifierFlags.intersection(.deviceIndependentFlagsMask).contains(.shift)
+        let n = chain.count
+        let j = forward ? (idx + 1) % n : (idx - 1 + n) % n
+        let target = chain[j]
+        self.panel.makeFirstResponder(target)
+        return nil
+      }
       guard self.buildFromClipboardCheckbox.state == .off else { return event }
       let delta: Int?
       if event.specialKey == .upArrow || event.keyCode == 126 {
