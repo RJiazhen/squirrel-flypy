@@ -6,6 +6,7 @@ install: install-release
 RIME_BIN_DIR = librime/dist/bin
 RIME_LIB_DIR = librime/dist/lib
 DERIVED_DATA_PATH = build
+RELEASE_BUILD_STAMP = $(DERIVED_DATA_PATH)/.squirrel-release-stamp
 
 RIME_LIBRARY_FILE_NAME = librime.1.dylib
 RIME_LIBRARY = lib/$(RIME_LIBRARY_FILE_NAME)
@@ -112,6 +113,7 @@ release: $(DEPS_CHECK)
 	mkdir -p $(DERIVED_DATA_PATH)
 	bash package/add_data_files
 	xcodebuild -project Squirrel.xcodeproj -configuration Release -scheme Squirrel -derivedDataPath $(DERIVED_DATA_PATH) $(BUILD_SETTINGS) build
+	touch $(RELEASE_BUILD_STAMP)
 
 debug: $(DEPS_CHECK)
 	mkdir -p $(DERIVED_DATA_PATH)
@@ -149,7 +151,10 @@ clean-sparkle:
 # Release CI reaches this through `make archive`. When DEV_ID is configured,
 # the installer is signed, notarized, and stapled before it is renamed into the
 # versioned release artifact.
-$(PACKAGE):
+# BSD make skips a file rule with no prerequisites when the file exists; depend on
+# RELEASE_BUILD_STAMP (touched after each release build) and build $(PACKAGE) in a
+# sub-make after release so a full `make package` always refreshes SquirrelFlypy.pkg.
+$(PACKAGE): $(RELEASE_BUILD_STAMP)
 ifdef DEV_ID
 	bash package/sign_app "$(DEV_ID)" "$(DERIVED_DATA_PATH)"
 endif
@@ -162,7 +167,8 @@ ifdef DEV_ID
 	xcrun stapler staple package/SquirrelFlypy.pkg
 endif
 
-package: release $(PACKAGE)
+package: release
+	$(MAKE) $(PACKAGE)
 
 # The archive target is the GitHub release artifact boundary: it builds the
 # package, prepares Sparkle signing tooling, then creates package/SquirrelFlypy-*.pkg
