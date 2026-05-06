@@ -1,0 +1,35 @@
+---
+description: Feature and bug development workflow with branch-first and interactive staged planning
+globs: **/*
+alwaysApply: false
+---
+
+# Feature / Bug Development Workflow
+
+When implementing a new feature or fixing a bug, follow this workflow.
+
+## 1) Branch First (Required)
+
+- Before substantive code changes, create a dedicated branch for the task.
+- Branch names should clearly reflect the goal (feature/fix + scope).
+- Do not mix unrelated work in the same branch.
+
+## 2) Interactive Plan First for Large/Ambiguous Work (Required)
+
+- If the request is not very clear, or the scope is medium/large, create an interactive, detailed plan before implementation.
+- The plan must be split into small, testable steps.
+- Each step must include:
+  - specific implementation points
+  - expected verification/acceptance criteria
+
+## 3) Gate by Acceptance (Required)
+
+- Implement only one step at a time.
+- After finishing a step, stop and wait for user acceptance/testing feedback.
+- Continue to the next step only after explicit approval.
+- If a step fails validation, fix within the same step before moving on.
+
+## 4) Commit Hygiene
+
+- Keep commits focused to the current accepted step or coherent checkpoint.
+- Use clear commit messages describing intent and scope.
